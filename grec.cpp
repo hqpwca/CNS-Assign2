@@ -82,6 +82,8 @@ int main(int argc, char** argv)
 
         fi.read((char *)buffer, sin->st_size);
 
+        decoder.SHA_512(buffer, sin->st_size, "encrypted file");
+
         memcpy(IV, buffer , IV_LEN);
         memcpy(ciphertext, buffer + IV_LEN, sin->st_size - HMAC_LEN - IV_LEN);
         memcpy(HMAC, buffer + sin->st_size - HMAC_LEN, HMAC_LEN);
@@ -97,6 +99,7 @@ int main(int argc, char** argv)
         int outlen = decoder.AES_decrypt(ciphertext, plaintext, IV, inlen);
 
         fo.write((char *)plaintext, outlen);
+        fo.flush();
         struct stat *sout = new struct stat;
         stat(output_filename.c_str(), sout);
 
@@ -117,6 +120,8 @@ int main(int argc, char** argv)
 
         int msg_len = net.Listen_Receive(buffer, port);
 
+        decoder.SHA_512(buffer, msg_len, "encrypted file");
+
         memcpy(IV, buffer , IV_LEN);
         memcpy(ciphertext, buffer + IV_LEN, msg_len - HMAC_LEN - IV_LEN);
         memcpy(HMAC, buffer + msg_len - HMAC_LEN, HMAC_LEN);
@@ -132,6 +137,7 @@ int main(int argc, char** argv)
         int outlen = decoder.AES_decrypt(ciphertext, plaintext, IV, inlen);
 
         fo.write((char *)plaintext, outlen);
+        fo.flush();
         struct stat *sout = new struct stat;
         stat(output_filename.c_str(), sout);
 

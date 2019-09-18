@@ -67,16 +67,28 @@ int main(int argc, char** argv)
 
     fi.read((char *)plaintext, sin->st_size);
 
+    encoder.SHA_512(plaintext, sin->st_size, "plaintext");
+
     encoder.set_key();
     int outlen = encoder.AES_encrypt(plaintext, ciphertext, IV, sin->st_size);
     encoder.HMAC_generate(ciphertext, HMAC, outlen);
 
+    encoder.SHA_512(ciphertext, outlen, "encrypted file");
+
     fo.write((char *)IV, IV_LEN);
     fo.write((char *)ciphertext, outlen);
     fo.write((char *)HMAC, HMAC_LEN);
+    fo.flush();
 
     struct stat *sout = new struct stat;
     stat(output_filename.c_str(), sout);
+
+    unsigned char *f = (unsigned char *)malloc(sout->st_size);
+    memcpy(f, IV, IV_LEN);
+    memcpy(f + IV_LEN, ciphertext, outlen);
+    memcpy(f + IV_LEN + outlen, HMAC, HMAC_LEN);
+
+    encoder.SHA_512(f, sout->st_size, "encrypted file||HMAC");
 
     fprintf(stderr, "Successfully encrypted %s(%ld bytes) to %s(%ld bytes).\n", input_filename.c_str(), sin->st_size, output_filename.c_str(), sout->st_size);
 
@@ -92,11 +104,6 @@ int main(int argc, char** argv)
         }
         int port;
         sscanf(portstr.c_str(), "%d", &port);
-
-        unsigned char *f = (unsigned char *)malloc(sout->st_size);
-        memcpy(f, IV, IV_LEN);
-        memcpy(f + IV_LEN, ciphertext, outlen);
-        memcpy(f + IV_LEN + outlen, HMAC, HMAC_LEN);
 
         net.Send(f, sout->st_size, IP, port);
     }

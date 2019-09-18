@@ -49,6 +49,18 @@ int Crypto::generate_IV(unsigned char* IV){
     return RAND_bytes(IV, AES_BLOCK_SIZE);
 }
 
+void Crypto::SHA_512(const unsigned char *input, int input_len, std::string type){
+    unsigned char hash[SHA512_DIGEST_LENGTH];
+    SHA512(input, input_len, hash);
+
+    std::cerr << "Hash(SHA-512) of " << type << ": ";
+    std::cerr << std::hex << std::uppercase;
+    for(int i=0; i < SHA512_DIGEST_LENGTH; ++i){
+        std::cerr << std::setfill('0') << std::setw(2)  << (int)hash[i] << ' ';
+    }
+    std::cerr << std::endl;
+}
+
 int Crypto::AES_encrypt(const unsigned char *input, unsigned char *output, unsigned char *sIV, int input_len){
     memset(output, 0, sizeof(output));
     int output_len, len;

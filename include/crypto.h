@@ -24,6 +24,8 @@ public:
     void set_key();
     void set_key(const char *password);
 
+    void SHA_512(const unsigned char *input, int input_len, std::string type);
+
     int generate_IV(unsigned char* IV);
     int AES_encrypt(const unsigned char *input, unsigned char *output, unsigned char *sIV, int input_len);
     int AES_decrypt(const unsigned char *input, unsigned char *output, unsigned char *sIV, int input_len);
